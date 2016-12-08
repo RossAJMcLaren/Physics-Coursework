@@ -10,28 +10,32 @@ static vector<cCollider *> colliders;
 
 static dvec3 gravity = dvec3(0, -10.0, 0);
 const double coef = 0.5;
-const double rigidcoef = 0.0;
+const double rigidcoef = 0.1;
 
 void ResolveRB(cRigidBody *const b, const collisionInfo &ci, bool which) {
   // TODO: Fix.
   const double w = (which ? -1.0 : 1.0);
-
-  dvec3 dv = b->position - b->prev_position;
-  dvec3 r0 = b->position - ci.position;
-  dvec3 v0 = dv + cross(b->angVelocity, r0);
+  dvec3 dv;
+  dvec3 r0;
+ 
+  	 
+  dv = b->prev_position - b->position;  
+  r0 = b->position - ci.position;
+  dvec3 v0 = dv - cross(b->angVelocity, r0);
 
   // I've butchered this formula pretty bad.
-  double j = -1.0 * (rigidcoef) +
-             dot(dv, ci.normal) /
-                 (dot(ci.normal, ci.normal) * (b->inversemass * 2.0) + dot(ci.normal, (cross(r0, ci.normal))));
+  double j = dot(dv, ci.normal) /
+                 (dot(ci.normal, ci.normal) * (b->inversemass * 10.0) + dot(ci.normal, (cross(r0, ci.normal))));
 
   // stop sinking
   j = j - (ci.depth * 0.1);
 
   // linear impulse
-  dvec3 newVel = dv + (b->inversemass * ci.normal * j);
-  b->AddLinearImpulse(-newVel);
+  dvec3 newVel = dv + ((b->inversemass) * ci.normal * j);
+  dvec3 counterVel = newVel * 4.0;
+  b->AddLinearImpulse(-newVel, dv);
 
+  
   // angular impulse
   auto gg = cross(r0, ci.normal);
   b->angVelocity += b->worldInvInertia * cross(r0, ci.normal * j);

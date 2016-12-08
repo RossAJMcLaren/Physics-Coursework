@@ -27,8 +27,7 @@ void cParticle::SetParent(Entity *p) {
 
 void cParticle::AddLinearForce(const glm::dvec3 &i) { forces += i; }
 
-void cParticle::AddLinearImpulse(const glm::dvec3 &v) {
-  const dvec3 dv = position - prev_position;
+void cParticle::AddLinearImpulse(const glm::dvec3 &v, const glm::dvec3 & dv) {
   const dvec3 newdv = dv + v;
   prev_position = position - newdv;
 }

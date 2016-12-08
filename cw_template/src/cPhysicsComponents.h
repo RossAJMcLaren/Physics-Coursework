@@ -16,7 +16,7 @@ public:
   void Update(double delta);
   virtual void SetParent(Entity *p);
   virtual void AddLinearForce(const glm::dvec3 &i);
-  virtual void AddLinearImpulse(const glm::dvec3 &i);
+  void AddLinearImpulse(const glm::dvec3 & v, const glm::dvec3 &dv);
   virtual void Integrate(const double dt);
 
 private:

@@ -20,9 +20,8 @@ unique_ptr<Entity> CreateBox(const vec3 &position, const int identification) {
 	name += std::to_string(identification);
 	unique_ptr<Entity> ent(new Entity());
 	ent->SetPosition(position);
-	ent->SetRotation(angleAxis(-0.0f, vec3(1, 0, 0)));
-	ent->SetScale(vec3(2.0f, 2.0f, 2.0f));
-	unique_ptr<Component> physComponent(new cRigidCube());
+	ent->SetRotation(angleAxis(0.0f, vec3(1, 1, 1)));
+	unique_ptr<Component> physComponent(new cRigidCube);
 	unique_ptr<cShapeRenderer> renderComponent(new cShapeRenderer(cShapeRenderer::BOX));
 	renderComponent->SetColour(phys::RandomColour());
 	ent->AddComponent(physComponent);
@@ -35,8 +34,8 @@ unique_ptr<Entity> CreateBox(const vec3 &position, const int identification) {
 
 bool load_content() {
 	phys::Init();
-	SceneList.push_back(move(CreateBox({ 0, 4, 0 }, 1)));
-	SceneList.push_back(move(CreateBox({ 4, 8, 0 }, 2)));
+	SceneList.push_back(move(CreateBox({ 0, 8, 0 }, 1)));
+	SceneList.push_back(move(CreateBox({4, 4, 0 }, 2)));
 	floorEnt = unique_ptr<Entity>(new Entity());
 	floorEnt->AddComponent(unique_ptr<Component>(new cPlaneCollider()));
 	floorEnt->SetName("Floor");
@@ -58,7 +57,7 @@ bool update(float delta_time) {
 			if (b != NULL) {
 				if (b->GetParent()->GetName() == "Car 1")
 				{
-					b->AddAngularForce({ 0, 0, 5.0 });
+					//b->AddAngularForce({ 0, 0, -5.0 });
 					b->AddLinearForce({ 100, 0, 0 });
 				}
 			}
@@ -71,8 +70,8 @@ bool update(float delta_time) {
 			if (b != NULL) {
 				if (b->GetParent()->GetName() == "Car 2")
 				{
-					//b->AddAngularForce({ 0, 0, 5.0 });
-					b->AddLinearForce({ -500, 0, 0 });
+					//b->AddAngularForce({ 0, 0, -5.0 });
+					b->AddLinearForce({ 100, 0, 0 });
 				}
 			}
 		}

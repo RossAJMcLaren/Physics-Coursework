@@ -12,8 +12,8 @@ bool IsCollidingCheck(std::vector<collisionInfo> &civ, const cSphereCollider &c1
   const dvec3 d = p2 - p1;
   const double distance = glm::length(d);
   const double sumRadius = c1.radius + c2.radius;
-  if (distance < sumRadius) {
-    auto depth = sumRadius - distance;
+  if (distance < (sumRadius)) {
+    auto depth = sumRadius + distance;
     auto norm = -glm::normalize(d);
     auto pos = p1 - norm * (c1.radius - depth * 0.5f);
     civ.push_back({&c1, &c2, pos, norm, depth});
@@ -89,43 +89,28 @@ bool IsCollidingCheck(std::vector<collisionInfo> &civ, const cPlaneCollider &p, 
     }
   }
   return isCollided;
+
 }
 
 bool IsCollidingCheck(std::vector<collisionInfo> &civ, const cBoxCollider &c1, const cBoxCollider &c2) {
 	const dvec3 sp = c1.GetParent()->GetPosition();
 	const dvec3 bp = c2.GetParent()->GetPosition();
 
-	//Faces of cube one
-	dvec3 pointsc1[8] = { dvec3(c1.radius, c1.radius, c1.radius),   dvec3(-c1.radius, c1.radius, c1.radius),
-		dvec3(c1.radius, -c1.radius, c1.radius),  dvec3(-c1.radius, -c1.radius, c1.radius),
-		dvec3(c1.radius, c1.radius, -c1.radius),  dvec3(-c1.radius, c1.radius, -c1.radius),
-		dvec3(c1.radius, -c1.radius, -c1.radius), dvec3(-c1.radius, -c1.radius, -c1.radius) };
-	// Faces of cube two
-	dvec3 pointsc2[8] = { dvec3(c2.radius, c2.radius, c2.radius),   dvec3(-c2.radius, c2.radius, c2.radius),
-		dvec3(c2.radius, -c2.radius, c2.radius),  dvec3(-c2.radius, -c2.radius, c2.radius),
-		dvec3(c2.radius, c2.radius, -c2.radius),  dvec3(-c2.radius, c2.radius, -c2.radius),
-		dvec3(c2.radius, -c2.radius, -c2.radius), dvec3(-c2.radius, -c2.radius, -c2.radius) };
+	const double distance = length(bp - sp);
+	const double sumRadius = c1.radius + c2.radius;
 
-	const mat4 mc1 = glm::translate(bp) * mat4_cast(c1.GetParent()->GetRotation());
-	for (int i = 0; i < 8; i++) {
-		pointsc1[i] = dvec3(mc1 * dvec4(pointsc1[i], 1.0));
-	}
-
-	const mat4 mc2 = glm::translate(bp) * mat4_cast(c2.GetParent()->GetRotation());
-	for (int i = 0; i < 8; i++) {
-		pointsc2[i] = dvec3(mc2 * dvec4(pointsc2[i], 1.0));
-	}
-
-	if (length(bp - sp) < c1.radius + c2.radius)
+	if (distance < (sumRadius) * 0.5)
 	{
-		civ.push_back({ &c1, &c2, sp - bp,  dvec3(1.0, 1.0, 1.0), (c1.radius + c2.radius)});
-		cout << "Collisions Detected! What now" << endl;
-		//c1.GetParent()->SetPosition(sp + dvec3(2.0, 2.0, 2.0));
-		//c2.GetParent()->SetPosition
-		return true;
+	auto depth = (sumRadius) - distance;
+	auto norm = glm::normalize(bp - sp);
+	auto pos = bp - norm * (c1.radius - depth * 0.5);
+	civ.push_back({ &c2, &c1, pos, norm, depth });
+	cout << "Collision Detected - Box to Box!" << endl;
+	return true;
 	}
 	cout << "Box Box" << endl;
 	return false;
+
 }
 
 bool IsColliding(std::vector<collisionInfo> &civ, const cCollider &c1, const cCollider &c2) {
