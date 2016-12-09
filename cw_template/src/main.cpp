@@ -1,6 +1,4 @@
-#include "game.h"
-#include "physics.h"
-#include "cPhysicsComponents.h"
+#include "Particle.h"
 #include <glm/glm.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 #include <graphics_framework.h>
@@ -11,94 +9,104 @@ using namespace std;
 using namespace graphics_framework;
 using namespace glm;
 #define physics_tick 1.0 / 60.0
+class Firework : public Particle
+{
+public:
+	unsigned type;
+	double age;
 
-static vector<unique_ptr<Entity>> SceneList;
-static unique_ptr<Entity> floorEnt;
+	bool update(double delta_time)
+	{
+		integrate(delta_time);
+		age -= delta_time;
+		return (age < 0) || (position.y < 0);
+	}
+};
 
-unique_ptr<Entity> CreateBox(const vec3 &position, const int identification) {
-	std::string name = "Car ";
-	name += std::to_string(identification);
-	unique_ptr<Entity> ent(new Entity());
-	ent->SetPosition(position);
-	ent->SetRotation(angleAxis(0.0f, vec3(1, 1, 1)));
-	unique_ptr<Component> physComponent(new cRigidCube);
-	unique_ptr<cShapeRenderer> renderComponent(new cShapeRenderer(cShapeRenderer::BOX));
-	renderComponent->SetColour(phys::RandomColour());
-	ent->AddComponent(physComponent);
-	ent->SetName(name);
-	ent->AddComponent(unique_ptr<Component>(new cBoxCollider()));
-	ent->AddComponent(unique_ptr<Component>(move(renderComponent)));
+struct FireworkRules
+{
+	const glm::dvec3 gravity = glm::dvec3(0, -9.81, 0);
+	unsigned type;
+	double age;
+	glm::dvec3 velocity;
+	double damping;
 
-	return ent;
-}
+	struct Payload
+	{
+		unsigned type;
+		unsigned count;
 
-bool load_content() {
-	phys::Init();
-	SceneList.push_back(move(CreateBox({ 0, 8, 0 }, 1)));
-	SceneList.push_back(move(CreateBox({4, 4, 0 }, 2)));
-	floorEnt = unique_ptr<Entity>(new Entity());
-	floorEnt->AddComponent(unique_ptr<Component>(new cPlaneCollider()));
-	floorEnt->SetName("Floor");
-	phys::SetCameraPos(vec3(20.0f, 10.0f, 20.0f));
-	phys::SetCameraTarget(vec3(0, 10.0f, 0));
-	InitPhysics();
-	return true;
-}
+		void set(unsigned type, unsigned count)
+		{
+			Payload::type = type;
+			Payload::count = count;
+		}
+	};
 
-bool update(float delta_time) {
-	static double t = 0.0;
-	static double accumulator = 0.0;
-	accumulator += delta_time;
+	unsigned payloadCount;
+	Payload *payloads;
 
-	if (glfwGetKey(renderer::get_window(), GLFW_KEY_SPACE)) {
-		for (auto &e : SceneList) {
-			auto b = e->getComponent<cRigidCube>();
-			//string name = b->GetParent();
-			if (b != NULL) {
-				if (b->GetParent()->GetName() == "Car 1")
-				{
-					//b->AddAngularForce({ 0, 0, -5.0 });
-					b->AddLinearForce({ 100, 0, 0 });
-				}
-			}
+	FireworkRules() 
+		: 
+		payloadCount(0),
+		payloads(NULL)
+	{
+	}
+
+	void init(unsigned payloadCount)
+	{
+		FireworkRules::payloadCount = payloadCount;
+		payloads = new Payload[payloadCount];
+	}
+
+	~FireworkRules()
+	{
+		if (payloads != NULL)
+		{
+			delete[] payloads;
 		}
 	}
 
-	if (glfwGetKey(renderer::get_window(), GLFW_KEY_Q)) {
-		for (auto &e : SceneList) {
-			auto b = e->getComponent<cRigidCube>();
-			if (b != NULL) {
-				if (b->GetParent()->GetName() == "Car 2")
-				{
-					//b->AddAngularForce({ 0, 0, -5.0 });
-					b->AddLinearForce({ 100, 0, 0 });
-				}
-			}
+	void setParameters(unsigned type, double Age,
+		const glm::dvec3 &Velocity, double damping)
+	{
+		FireworkRules::type = type;
+		FireworkRules::age = Age;
+		FireworkRules::velocity = Velocity;
+		FireworkRules::damping = damping;
+	}
+
+	void create(Firework *firework, const Firework *parent = NULL) const
+	{
+		firework->type = type;
+		firework->age = age;
+		glm::dvec3 fireworkVelocity;
+
+		if (parent) {
+			firework->setPosition(parent->getPosition());
+			velocity += parent->getVelocity();
 		}
+		else
+		{
+			glm::dvec3 startPosition;
+			int x = rand() % 3 - 1;
+			startPosition.x = 5.0 * x;
+			firework->setPosition(startPosition);
+		}
+
+		fireworkVelocity += velocity;
+		firework->setVelocity(fireworkVelocity);
+		firework->setMass(1);
+		firework->setDamping(damping);
+		firework->setAcceleration(gravity);
+		firework->clearAccumulator();
 	}
+};
 
-	while (accumulator > physics_tick) {
-		UpdatePhysics(t, physics_tick);
-		accumulator -= physics_tick;
-		t += physics_tick;
-	}
-
-	for (auto &e : SceneList) {
-		e->Update(delta_time);
-	}
-
-	phys::Update(delta_time);
-	return true;
-}
-
-bool render() {
-	for (auto &e : SceneList) {
-		e->Render();
-	}
-	phys::DrawScene();
-	return true;
-}
-
+class FireworksDemo : public app
+{
+	const static unsigned maxFireworks = 1024;
+};
 void main() {
 	// Create application
 	app application;
