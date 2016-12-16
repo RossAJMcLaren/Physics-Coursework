@@ -1,6 +1,6 @@
 #pragma once
 #define GLM_ENABLE_EXPERIMENTAL
-#include <C:/Physics-Work/Physics Work/glm-src/glm/glm.hpp>
+#include <glm/glm.hpp>
 #include <iostream>
 #define RED                                                                                                            \
   { 4278190335 }

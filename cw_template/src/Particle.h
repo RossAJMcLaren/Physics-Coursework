@@ -1,5 +1,5 @@
 #pragma once
-#include <C:/Physics-Work/Physics Work/glm-src/glm/glm.hpp>
+#include <glm/glm.hpp>
 
 using namespace std;
 using namespace glm;

@@ -1,7 +1,7 @@
 #include "phys_utils.h"
-#include <C:/Physics-Work/Physics Work/glm-src/glm/glm.hpp>
-#include <C:/Coursework_Build/enu_gfx-src/src/graphics_framework.h>
-#include <C:/Coursework_Build/glew-src/include/GL/glew.h>
+#include <glm/glm.hpp>
+#include <graphics_framework.h>
+#include <GL/glew.h>
 
 using namespace std;
 using namespace graphics_framework;
